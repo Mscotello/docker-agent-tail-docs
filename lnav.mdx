@@ -1,0 +1,151 @@
+---
+title: "lnav Integration"
+description: "View docker-agent-tail logs with lnav — a terminal-based log viewer with SQL queries, regex filtering, and color-coded levels."
+---
+
+## Why lnav?
+
+Reading raw JSONL files with `grep` and `jq` works, but you lose context. lnav gives you a real-time, interactive view of your logs — color-coded levels, instant filtering, SQL queries, and a timeline view — all in your terminal.
+
+docker-agent-tail includes a **built-in lnav format definition** that's auto-installed on first run. No configuration, no schema files to manage.
+
+| Without lnav | With lnav |
+|-------------|-----------|
+| `grep error combined.jsonl` | `:filter-in error` with color-coded context |
+| `jq 'select(.container=="api")' combined.jsonl` | `:filter-in api` with live updates |
+| Manual timestamp correlation | Timeline histogram view (press `t`) |
+| No aggregation | `;SELECT container, count(*) FROM log GROUP BY container` |
+
+## Setup
+
+### Install lnav
+
+<Tabs>
+  <Tab title="macOS">
+    ```bash
+    brew install lnav
+    ```
+  </Tab>
+  <Tab title="Linux">
+    ```bash
+    # Debian/Ubuntu
+    sudo apt install lnav
+
+    # Or download from https://lnav.org/downloads
+    ```
+  </Tab>
+</Tabs>
+
+### Install the docker-agent-tail format
+
+The lnav format is **auto-installed** the first time you run `docker-agent-tail`. No manual setup needed.
+
+To manually install or reinstall:
+
+```bash
+docker-agent-tail lnav-install
+```
+
+This installs a format definition that teaches lnav how to parse the JSONL fields (`ts`, `container`, `stream`, `level`, `message`).
+
+## Usage
+
+The easiest way to view logs is with the `lnav` subcommand:
+
+```bash
+# Open latest session in lnav
+docker-agent-tail lnav
+
+# Open a specific session
+docker-agent-tail lnav --session 2026-03-04-143700
+```
+
+You can also call lnav directly:
+
+```bash
+# View the latest combined log
+lnav logs/latest/combined.jsonl
+
+# View all per-container logs from the latest session
+lnav logs/latest/*.jsonl
+
+# View logs from a specific session
+lnav logs/2026-03-04-103001/combined.jsonl
+```
+
+## Key Features
+
+### Filter by log level
+
+Use lnav's built-in level filtering to focus on errors or warnings:
+
+```
+:set-min-log-level warning
+```
+
+Or filter to show only specific levels:
+
+```
+:filter-in error
+```
+
+### Filter by container
+
+Show logs from a specific container:
+
+```
+:filter-in api
+```
+
+### SQL queries
+
+lnav supports SQL queries against your log data:
+
+```sql
+;SELECT container, count(*) as cnt FROM log GROUP BY container ORDER BY cnt DESC
+```
+
+```sql
+;SELECT container, level, count(*) FROM log GROUP BY container, level
+```
+
+```sql
+;SELECT * FROM log WHERE level = 'error' ORDER BY log_time DESC LIMIT 20
+```
+
+### Regex search
+
+Search across all logs with regex:
+
+```
+/timeout|connection refused
+```
+
+```
+/status.*5\d{2}
+```
+
+### Timeline view
+
+Press `t` to switch to the timeline/histogram view, which shows log density over time — useful for spotting bursts of errors.
+
+## Level Normalization
+
+docker-agent-tail normalizes log levels from various formats into canonical values that lnav understands:
+
+| Source format | Normalized level |
+|---------------|-----------------|
+| `I`, `info`, `notice` | `info` |
+| `W`, `warn`, `warning` | `warning` |
+| `E`, `err`, `error` | `error` |
+| `F`, `fatal`, `critical`, `crit`, `emerg` | `fatal` |
+| `D`, `debug` | `debug` |
+| `T`, `trace` | `trace` |
+
+This means logs from MongoDB (`s:"I"`), Node.js (`level:"info"`), Python (`levelname:"WARNING"`), and other frameworks all get consistent color-coded levels in lnav.
+
+## Learn More
+
+- [lnav documentation](https://docs.lnav.org)
+- [lnav hotkeys reference](https://docs.lnav.org/en/latest/hotkeys.html)
+- [CLI Reference](/cli-reference) for all docker-agent-tail options

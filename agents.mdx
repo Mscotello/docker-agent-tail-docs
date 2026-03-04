@@ -5,29 +5,38 @@ description: "Learn how to integrate docker-agent-tail with AI coding agents lik
 
 ## Why AI Agents Need Logs
 
-When debugging or developing multi-container applications, AI agents need access to real-time logs from all running services. docker-agent-tail provides structured, machine-readable log output that AI agents can easily parse and analyze.
+When debugging or developing multi-container applications, AI agents need access to real-time logs from all running services. docker-agent-tail provides structured JSONL log output with normalized levels that AI agents can easily parse and analyze.
 
 ## Claude Code Integration
 
 Use docker-agent-tail to provide real-time logs to Claude Code:
 
 <Steps>
+  <Step title="Set up agent config (optional)">
+    Run `init` to generate agent-specific config files in your logs directory:
+
+    ```bash
+    docker-agent-tail init
+    ```
+  </Step>
   <Step title="Start collecting logs">
     In your terminal, start docker-agent-tail to write logs:
 
     ```bash
-    docker-agent-tail --all --output logs/ --follow
+    docker-agent-tail --all --follow
     ```
   </Step>
   <Step title="Share logs with Claude Code">
-    Share the logs directory with Claude Code by asking it to read the files.
+    Ask Claude Code to read the latest logs:
+
+    ```
+    Read the logs in logs/latest/combined.jsonl and help me debug the errors
+    ```
   </Step>
   <Step title="Debug with context">
     Claude Code can now see what's happening in your containers and help debug issues.
   </Step>
 </Steps>
-
-This approach gives Claude Code real-time visibility into your running application's behavior.
 
 ## Cursor Integration
 
@@ -35,13 +44,11 @@ Similar to Claude Code, you can use docker-agent-tail with Cursor:
 
 ```bash
 # In your workspace, start collecting logs
-docker-agent-tail --all --output .logs/ --follow
+docker-agent-tail --all --follow
 
-# Cursor will pick up the new .logs directory in your workspace
-# It can then analyze container behavior in real-time
+# Cursor will pick up the logs/ directory in your workspace
+# It can then analyze logs/latest/combined.jsonl for insights
 ```
-
-Cursor can monitor the log files and provide insights about your containers.
 
 ## Best Practices
 
@@ -50,21 +57,21 @@ Cursor can monitor the log files and provide insights about your containers.
     Use `--exclude` and `--mute` to reduce noise in logs shared with AI agents. This helps them focus on meaningful errors and warnings.
 
     ```bash
-    docker-agent-tail --all --output logs/ --exclude 'health' --mute 'DEBUG'
+    docker-agent-tail --all --exclude 'health' --mute 'worker'
     ```
   </Card>
-  <Card title="Use JSON Output for Parsing" icon="code">
-    When building automation around logs, use `--json` for machine-readable output that's easier to parse.
+  <Card title="Use lnav for Analysis" icon="magnifying-glass">
+    Use lnav to interactively explore logs with SQL queries and regex filtering before sharing with an agent.
 
     ```bash
-    docker-agent-tail --all --json > logs.jsonl
+    lnav logs/latest/combined.jsonl
     ```
   </Card>
   <Card title="Recent Logs Only" icon="clock">
     Use `--since` to only capture recent logs, reducing file size and improving agent performance.
 
     ```bash
-    docker-agent-tail --all --since "2026-03-04T10:00:00Z" --output logs/
+    docker-agent-tail --all --since 5m
     ```
   </Card>
   <Card title="Specific Services" icon="bullseye">
@@ -78,30 +85,29 @@ Cursor can monitor the log files and provide insights about your containers.
 
 ## Log Format for Agents
 
-docker-agent-tail outputs structured logs designed for easy parsing by AI agents:
+docker-agent-tail writes structured JSONL logs designed for easy parsing by AI agents:
 
 <CodeGroup>
 
-```text Combined Log (human-readable)
-[2026-03-04T10:30:01.789Z] [api    ] [stdout] GET /api/users 200 12ms
-[2026-03-04T10:30:02.145Z] [web    ] [stderr] Warning: slow query detected
-[2026-03-04T10:30:02.567Z] [worker ] [stdout] Processing job #42
+```json Plain text container output
+{"ts":"2026-03-04T10:30:01.789Z","container":"api","stream":"stdout","message":"GET /api/users 200 12ms"}
+{"ts":"2026-03-04T10:30:02.145Z","container":"web","stream":"stderr","message":"Warning: slow query detected"}
 ```
 
-```json JSON Lines (programmatic analysis)
-{"timestamp":"2026-03-04T10:30:01.789Z","container":"api","stream":"stdout","message":"GET /api/users 200 12ms"}
-{"timestamp":"2026-03-04T10:30:02.145Z","container":"web","stream":"stderr","message":"Warning: slow query detected"}
-{"timestamp":"2026-03-04T10:30:02.567Z","container":"worker","stream":"stdout","message":"Processing job #42"}
+```json Structured JSON (merged + level normalized)
+{"ts":"2026-03-04T10:30:01.789Z","container":"api","stream":"stdout","level":"info","msg":"request completed","status":200}
+{"ts":"2026-03-04T10:30:02.145Z","container":"mongodb","stream":"stdout","level":"warning","msg":"Slow operation","durationMillis":1200}
 ```
 
 </CodeGroup>
 
-Each log entry includes timestamp, container name, stream type (stdout/stderr), and the actual message. This structure makes it easy for AI agents to:
+Each log entry includes:
 
-- Correlate events across containers by timestamp
-- Filter by container and stream type
-- Parse structured data from log messages
-- Identify error patterns and anomalies
+- **`ts`**: ISO 8601 timestamp for correlating events across containers
+- **`container`**: Container name for filtering
+- **`stream`**: `stdout` or `stderr`
+- **`level`**: Normalized log level (when detected from structured JSON)
+- **`message`**: Log content (plain text) or original fields (structured JSON)
 
 ## Example: Debugging a Failing Deploy
 
@@ -115,17 +121,17 @@ Here's a typical workflow for using docker-agent-tail with an AI agent:
   </Step>
   <Step title="Start collecting logs">
     ```bash
-    docker-agent-tail --all --output debug_logs/ --follow --no-color
+    docker-agent-tail --all --follow
     ```
   </Step>
   <Step title="Share with the AI agent">
-    *"I've saved all the logs in the debug_logs/ directory. Can you analyze them and tell me what's going wrong?"*
+    *"I've got logs streaming to logs/latest/. Can you read logs/latest/combined.jsonl and tell me what's going wrong?"*
   </Step>
   <Step title="AI agent analyzes">
-    The agent reads `combined.log` and per-container logs, correlates errors by timestamp, identifies the root cause, and suggests fixes.
+    The agent reads `combined.jsonl` and per-container `.jsonl` files, correlates errors by timestamp and level, identifies the root cause, and suggests fixes.
   </Step>
 </Steps>
 
 ---
 
-For more details on CLI options, see the [CLI reference](/cli-reference).
+For more details on CLI options, see the [CLI reference](/cli-reference). For interactive log analysis, see the [lnav integration](/lnav).

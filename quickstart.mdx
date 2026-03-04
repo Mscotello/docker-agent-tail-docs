@@ -41,49 +41,57 @@ Use regex patterns to filter and mute specific log lines:
 # Exclude lines matching a pattern
 docker-agent-tail --all --exclude 'health.*check' --follow
 
-# Mute specific patterns (separate output file)
-docker-agent-tail --all --mute 'DEBUG|TRACE' --follow
+# Mute specific containers from terminal (still saved to log files)
+docker-agent-tail --all --mute 'worker-app' --follow
 ```
 
 ## Step 5: Save to Files
 
-Write logs to files for later analysis or sharing with AI agents:
+Logs are automatically saved to the `./logs` directory (configurable with `--output`):
 
 ```bash
-# Create a logs directory
-mkdir -p logs
+# Uses default output directory ./logs
+docker-agent-tail --all --follow
 
-# Write combined logs
-docker-agent-tail --all --output logs/combined.log --follow
+# Or specify a custom directory
+docker-agent-tail --all --output ./debug-logs --follow
 ```
 
-This creates individual per-container logs and a combined log file.
+This creates a timestamped session directory with per-container `.jsonl` files and a `combined.jsonl`. A `latest` symlink always points to the most recent session.
 
 ## Understanding Log Output
 
-Log lines follow a structured format optimized for parsing:
+Log files use JSON Lines format (`.jsonl`), with one JSON object per line:
 
 <CodeGroup>
 
-```text Per-Container
-[2026-03-04T10:30:01.789Z] [stdout] GET /api/users 200 12ms
+```json Plain text container output
+{"ts":"2026-03-04T10:30:01.789Z","container":"web-server","stream":"stdout","message":"GET /api/users 200 12ms"}
 ```
 
-```text Combined
-[2026-03-04T10:30:01.789Z] [web  ] [stdout] GET /api/users 200 12ms
+```json Structured JSON (merged + level normalized)
+{"ts":"2026-03-04T10:30:01.789Z","container":"api","stream":"stdout","level":"info","msg":"request completed","status":200}
 ```
 
 </CodeGroup>
 
-- **Timestamp**: ISO 8601 format with millisecond precision
-- **Container name**: Fixed-width column in combined logs
-- **Stream type**: stdout or stderr
+- **`ts`**: ISO 8601 timestamp with nanosecond precision
+- **`container`**: Container name
+- **`stream`**: `stdout` or `stderr`
+- **`level`**: Normalized log level (when detected from structured JSON)
+
+For interactive log exploration, install [lnav](/lnav) and use it to view the saved logs:
+
+```bash
+docker-agent-tail lnav-install  # one-time setup
+lnav logs/latest/combined.jsonl
+```
 
 ## Next Steps
 
 <CardGroup cols={2}>
   <Card title="CLI Reference" icon="terminal" href="/cli-reference">
-    Explore all available flags and options
+    Explore all available commands, flags, and options
   </Card>
   <Card title="Using with AI Agents" icon="robot" href="/agents">
     Learn how to use docker-agent-tail with Claude Code and Cursor

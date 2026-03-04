@@ -1,7 +1,26 @@
 ---
 title: "CLI Reference"
-description: "Complete reference for all docker-agent-tail flags and options."
+description: "Complete reference for all docker-agent-tail commands, flags, and options."
 ---
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `init` | Set up AI agent config files (`.claude`, `.cursor`, `.windsurf`) in the output directory |
+| `agent-help` | Print a usage guide for AI coding agents to read |
+| `clean` | Remove old log sessions. Use `--retain N` to keep the last N sessions (default: 5) |
+| `lnav` | Open the latest session in [lnav](/lnav). Use `--session <name>` for a specific session |
+| `lnav-install` | Install the lnav format definition for viewing JSONL logs with [lnav](/lnav) |
+
+```bash
+# Examples
+docker-agent-tail init
+docker-agent-tail clean --retain 3
+docker-agent-tail lnav
+docker-agent-tail lnav --session 2026-03-04-143700
+docker-agent-tail lnav-install
+```
 
 ## Global Flags
 
@@ -10,22 +29,21 @@ description: "Complete reference for all docker-agent-tail flags and options."
 | `--all, -a` | Discover and tail all running containers |
 | `--names, -n` | Comma-separated list of container names to tail (e.g., `api,web,db`) |
 | `--compose, -c` | Tail all services in a Docker Compose project (requires docker-compose.yml) |
-| `--follow, -f` | Follow logs in real-time as new entries arrive |
-| `--output, -o` | Output directory for log files (creates both combined and per-container logs) |
-| `--since` | Only show logs since timestamp (RFC3339 format, e.g., `2026-03-04T10:30:00Z`) |
-| `--json` | Output logs in JSON format instead of text |
+| `--follow, -f` | Follow logs in real-time as new entries arrive (default: true) |
+| `--output, -o` | Output directory for log files (default: `./logs`) |
+| `--since, -s` | Only show logs since a duration ago (e.g., `5m`, `1h`) or RFC3339 timestamp |
 | `--no-color` | Disable colored output (useful for piping to files) |
 
 ## Filter Flags
 
 | Flag | Description |
 |------|-------------|
-| `--exclude, -e` | Exclude logs matching this regex pattern. Example: `--exclude 'health.*check'` |
-| `--mute, -m` | Mute logs matching this regex (separate output file). Example: `--mute 'DEBUG\|TRACE'` |
+| `--exclude, -e` | Exclude log lines matching this regex pattern. Example: `--exclude 'health.*check'` |
+| `--mute, -m` | Hide matching containers from terminal output (still written to log files). Example: `--mute 'worker'` |
 
 ## Positional Arguments
 
-### `GLOB_PATTERN`
+### `PATTERN`
 
 Optional glob pattern to filter containers by name. Example: `web-*` matches all containers starting with "web-".
 
@@ -50,15 +68,11 @@ docker-agent-tail 'api-*' --follow
 ```
 
 ```bash Save logs with filtering
-docker-agent-tail --all --output logs/ --exclude 'health' --mute 'DEBUG'
+docker-agent-tail --all --exclude 'health' --mute 'worker'
 ```
 
-```bash JSON output for parsing
-docker-agent-tail --all --json | jq '.container'
-```
-
-```bash Logs since a specific time
-docker-agent-tail --all --since "2026-03-04T10:00:00Z"
+```bash Logs from the last 5 minutes
+docker-agent-tail --all --since 5m
 ```
 
 ```bash Without ANSI colors
@@ -69,31 +83,39 @@ docker-agent-tail --all --no-color > logs.txt
 
 ## Output Files
 
-When using `--output`, the following files are created:
+When using `--output` (default: `./logs`), a timestamped session directory is created with the following files:
 
 | File | Description |
 |------|-------------|
-| `combined.log` | All logs from all containers in one file with container names |
-| `<container-name>.log` | Individual log file for each container |
-| `<container-name>.muted.log` | Only logs matching mute patterns for each container |
+| `combined.jsonl` | All logs from all containers in one JSONL file |
+| `<container-name>.jsonl` | Individual JSONL log file for each container |
+| `metadata.json` | Session metadata (start time, command, container list) |
+
+A `latest` symlink always points to the most recent session directory.
 
 ## Log Format
 
+Log files use JSON Lines (`.jsonl`). Each line is a valid JSON object.
+
 <CodeGroup>
 
-```text Per-Container
-[2026-03-04T10:30:01.789Z] [stdout] GET /api/users 200 12ms
+```json Plain text container output
+{"ts":"2026-03-04T10:30:01.789Z","container":"api","stream":"stdout","message":"GET /api/users 200 12ms"}
 ```
 
-```text Combined
-[2026-03-04T10:30:01.789Z] [api  ] [stdout] GET /api/users 200 12ms
-```
-
-```json JSON
-{"timestamp":"2026-03-04T10:30:01.789Z","container":"api","stream":"stdout","message":"GET /api/users 200 12ms"}
+```json Structured JSON (merged + level normalized)
+{"ts":"2026-03-04T10:30:01.789Z","container":"mongodb","stream":"stdout","level":"info","msg":"Connection accepted","attr":{"remote":"192.168.1.1"}}
 ```
 
 </CodeGroup>
+
+- **`ts`**: ISO 8601 timestamp (RFC3339Nano)
+- **`container`**: Container name
+- **`stream`**: `stdout` or `stderr`
+- **`level`**: Normalized log level (when detected from structured JSON)
+- **`message`**: Log message (plain text output only)
+
+Structured JSON from containers is automatically merged with metadata fields. Log levels are [normalized](/lnav#level-normalization) to canonical values (`debug`, `info`, `warning`, `error`, `fatal`, `trace`).
 
 ## Environment Variables
 

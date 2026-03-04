@@ -27,26 +27,48 @@ description: "Common questions about docker-agent-tail."
   </Accordion>
 
   <Accordion title="Can I filter out certain log lines?">
-    Yes, use `--exclude` to skip lines entirely and `--mute` to save matching lines to a separate `.muted.log` file.
+    Yes, use `--exclude` to skip lines matching a regex pattern. Use `--mute` to hide matching containers from terminal output while still writing them to log files.
   </Accordion>
 
   <Accordion title="Can I save logs to files?">
-    Yes, use `--output` to specify a directory. This creates `combined.log` and per-container logs.
+    Logs are saved automatically to the `./logs` directory (configurable with `--output`). Each session creates a timestamped directory with `combined.jsonl` and per-container `.jsonl` files. A `latest` symlink always points to the most recent session.
   </Accordion>
 
   <Accordion title="What's the difference between --exclude and --mute?">
-    `--exclude` completely skips matching lines. `--mute` hides them from normal output but saves them to a separate file for later analysis.
+    `--exclude` completely skips log lines matching the regex — they are not shown in the terminal and not written to files. `--mute` hides matching containers from terminal output but still writes their logs to files for later analysis.
   </Accordion>
 
-  <Accordion title="Can I get JSON output?">
-    Yes, use the `--json` flag to output newline-delimited JSON that's easy to parse and automate.
+  <Accordion title="What format are log files in?">
+    Log files use JSON Lines (`.jsonl`) format. Each line is a valid JSON object with fields like `ts`, `container`, `stream`, and either `message` (plain text) or the original structured fields (JSON container output). Structured JSON from containers is automatically merged with metadata and levels are normalized. No special flag is needed — JSONL is the default file format.
+  </Accordion>
+
+  <Accordion title="How do I view logs interactively?">
+    Use [lnav](https://lnav.org), a terminal-based log viewer. Install the format definition once with `docker-agent-tail lnav-install`, then view logs with:
+
+    ```bash
+    lnav logs/latest/combined.jsonl
+    ```
+
+    lnav supports SQL queries, regex filtering, and color-coded log levels. See the [lnav integration guide](/lnav) for details.
+  </Accordion>
+
+  <Accordion title="How do I clean up old log sessions?">
+    Use the `clean` command to remove old sessions:
+
+    ```bash
+    # Keep the 5 most recent sessions (default)
+    docker-agent-tail clean
+
+    # Keep only the 3 most recent
+    docker-agent-tail clean --retain 3
+    ```
   </Accordion>
 
   <Accordion title="How do I filter logs by time?">
-    Use `--since` with RFC3339 format to only show logs since a specific time:
+    Use `--since` with a Go duration (e.g., `5m`, `1h`, `30s`) to only show logs from that duration ago:
 
     ```bash
-    docker-agent-tail --all --since "2026-03-04T10:00:00Z"
+    docker-agent-tail --all --since 5m
     ```
   </Accordion>
 
@@ -67,7 +89,7 @@ description: "Common questions about docker-agent-tail."
   </Accordion>
 
   <Accordion title="How much disk space do logs take?">
-    That depends on your containers' verbosity and how long you run docker-agent-tail. Use `--exclude` and `--mute` to reduce file size.
+    That depends on your containers' verbosity and how long you run docker-agent-tail. Use `--exclude` to reduce file size, and `docker-agent-tail clean` to remove old sessions.
   </Accordion>
 
   <Accordion title="Is there a performance impact on my containers?">

@@ -28,7 +28,7 @@ Auto-discover Docker containers, tail their logs in real-time, and write structu
     Install via Go, curl, or Docker
   </Card>
   <Card title="CLI Reference" icon="terminal" href="/cli-reference">
-    Complete flag and option reference
+    Complete command and flag reference
   </Card>
   <Card title="AI Agents" icon="robot" href="/agents">
     Integrate with Claude Code, Cursor, and Windsurf
@@ -45,16 +45,16 @@ Auto-discover Docker containers, tail their logs in real-time, and write structu
     Tail logs as they happen with configurable filtering and output formatting.
   </Card>
   <Card title="AI-Optimized Output" icon="file-lines">
-    Structured log files with timestamps and container names perfect for AI analysis.
+    Structured JSONL log files with normalized levels and metadata, perfect for AI analysis.
   </Card>
   <Card title="Docker Compose Support" icon="cubes">
     Works seamlessly with Docker Compose projects and services.
   </Card>
   <Card title="Flexible Filtering" icon="filter">
-    Filter logs by regex patterns, exclude noisy containers, and mute specific streams.
+    Filter logs by regex patterns, exclude noisy lines, and mute specific containers from terminal output.
   </Card>
-  <Card title="Multiple Output Formats" icon="code">
-    JSON output, combined logs, per-container logs, or raw stream mode.
+  <Card title="lnav Integration" icon="chart-bar" href="/lnav">
+    View structured JSONL logs with lnav — SQL queries, regex filtering, and color-coded levels.
   </Card>
 </CardGroup>
 
@@ -96,10 +96,10 @@ docker-agent-tail --all --follow
 docker-agent-tail --names api,web --follow
 
 # Filter logs with regex
-docker-agent-tail --all --exclude 'health' --mute 'DEBUG'
+docker-agent-tail --all --exclude 'health' --mute 'worker'
 
-# Output combined logs to a file
-docker-agent-tail --all --output logs/combined.log
+# View saved logs with lnav
+lnav logs/latest/combined.jsonl
 ```
 
 ## Ready to get started?

@@ -129,6 +129,43 @@ Search across all logs with regex:
 
 Press `t` to switch to the timeline/histogram view, which shows log density over time — useful for spotting bursts of errors.
 
+## Non-interactive mode (for scripts and AI agents)
+
+lnav's interactive TUI doesn't work in non-interactive shells (CI, scripts, AI agents). Use `-n` (non-interactive) with `-c` to run commands and get output to stdout:
+
+```bash
+# Count log lines per container
+lnav -n -c ';SELECT container, count(*) AS cnt FROM log GROUP BY container ORDER BY cnt DESC' logs/latest/combined.jsonl
+
+# Find all errors
+lnav -n -c ';SELECT log_time, container, log_body FROM log WHERE level = "error"' logs/latest/combined.jsonl
+
+# Errors in the last 5 minutes
+lnav -n -c ';SELECT log_time, container, log_body FROM log WHERE level = "error" AND log_time > datetime("now", "-5 minutes")' logs/latest/combined.jsonl
+
+# Log volume by container and level
+lnav -n -c ';SELECT container, level, count(*) FROM log GROUP BY container, level' logs/latest/combined.jsonl
+
+# Filter to a single container and write to stdout
+lnav -n -c ':filter-in api' -c ':write-to -' logs/latest/combined.jsonl
+```
+
+<Tip>
+AI coding agents (Claude Code, Cursor, etc.) should use `lnav -n -c` instead of the interactive TUI. This gives them full SQL access to structured log data without needing a terminal.
+</Tip>
+
+### Multiple commands
+
+Chain multiple `-c` flags to build pipelines:
+
+```bash
+# Filter to errors, then write to stdout
+lnav -n -c ':filter-in error' -c ':write-to -' logs/latest/combined.jsonl
+
+# Set minimum level, then query
+lnav -n -c ':set-min-log-level warning' -c ';SELECT container, count(*) FROM log GROUP BY container' logs/latest/combined.jsonl
+```
+
 ## Level Normalization
 
 docker-agent-tail normalizes log levels from various formats into canonical values that lnav understands:

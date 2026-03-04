@@ -60,11 +60,11 @@ docker-agent-tail --all --follow
     docker-agent-tail --all --exclude 'health' --mute 'worker'
     ```
   </Card>
-  <Card title="Use lnav for Analysis" icon="magnifying-glass">
-    Use lnav to interactively explore logs with SQL queries and regex filtering before sharing with an agent.
+  <Card title="Query Logs with lnav" icon="magnifying-glass">
+    Agents can use `lnav -n -c` to run SQL queries against logs without an interactive terminal.
 
     ```bash
-    lnav logs/latest/combined.jsonl
+    lnav -n -c ';SELECT container, level, count(*) FROM log GROUP BY container, level' logs/latest/combined.jsonl
     ```
   </Card>
   <Card title="Recent Logs Only" icon="clock">

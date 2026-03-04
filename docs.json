@@ -1,0 +1,50 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "docker-agent-tail",
+  "colors": {
+    "primary": "#3b82f6",
+    "light": "#eff6ff",
+    "dark": "#1e40af"
+  },
+  "logo": {
+    "light": "/logo-light.svg",
+    "dark": "/logo.svg",
+    "href": "https://github.com/scotello/docker-agent-tail"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "quickstart", "installation"]
+          },
+          {
+            "group": "Reference",
+            "pages": ["cli-reference", "agents"]
+          },
+          {
+            "group": "Help",
+            "pages": ["faq"]
+          }
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/scotello/docker-agent-tail"
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/scotello/docker-agent-tail"
+    }
+  }
+}

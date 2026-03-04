@@ -1,0 +1,90 @@
+---
+title: "FAQ"
+description: "Common questions about docker-agent-tail."
+---
+
+<AccordionGroup>
+  <Accordion title="Do I need Docker running?">
+    Yes, docker-agent-tail needs Docker daemon to be running and accessible. It connects to the Docker socket to list and stream container logs.
+  </Accordion>
+
+  <Accordion title="What if I don't have permission to access the Docker socket?">
+    Add your user to the docker group:
+
+    ```bash
+    sudo usermod -aG docker $USER
+    ```
+
+    Then log out and back in for the change to take effect.
+  </Accordion>
+
+  <Accordion title="Can I use this with Docker Compose?">
+    Yes! Use the `--compose` flag to automatically discover and tail all services in a `docker-compose.yml` file.
+  </Accordion>
+
+  <Accordion title="What log drivers are supported?">
+    docker-agent-tail works with `json-file` and `journald` log drivers. Other drivers won't support real-time streaming.
+  </Accordion>
+
+  <Accordion title="Can I filter out certain log lines?">
+    Yes, use `--exclude` to skip lines entirely and `--mute` to save matching lines to a separate `.muted.log` file.
+  </Accordion>
+
+  <Accordion title="Can I save logs to files?">
+    Yes, use `--output` to specify a directory. This creates `combined.log` and per-container logs.
+  </Accordion>
+
+  <Accordion title="What's the difference between --exclude and --mute?">
+    `--exclude` completely skips matching lines. `--mute` hides them from normal output but saves them to a separate file for later analysis.
+  </Accordion>
+
+  <Accordion title="Can I get JSON output?">
+    Yes, use the `--json` flag to output newline-delimited JSON that's easy to parse and automate.
+  </Accordion>
+
+  <Accordion title="How do I filter logs by time?">
+    Use `--since` with RFC3339 format to only show logs since a specific time:
+
+    ```bash
+    docker-agent-tail --all --since "2026-03-04T10:00:00Z"
+    ```
+  </Accordion>
+
+  <Accordion title="Does this work with TTY-attached containers?">
+    Containers with TTY attached may output raw streams. docker-agent-tail detects this and handles it appropriately.
+  </Accordion>
+
+  <Accordion title="Can I use glob patterns to filter containers?">
+    Yes, pass a glob pattern as an argument to match container names. For example: `web-*` matches all containers starting with "web-".
+  </Accordion>
+
+  <Accordion title="What if I have containers with the same name?">
+    Docker doesn't allow duplicate container names, so this shouldn't happen. Each container must have a unique name.
+  </Accordion>
+
+  <Accordion title="Can I tail logs from a remote Docker daemon?">
+    Yes! Set the `DOCKER_HOST` environment variable to connect to a remote Docker daemon.
+  </Accordion>
+
+  <Accordion title="How much disk space do logs take?">
+    That depends on your containers' verbosity and how long you run docker-agent-tail. Use `--exclude` and `--mute` to reduce file size.
+  </Accordion>
+
+  <Accordion title="Is there a performance impact on my containers?">
+    No. docker-agent-tail reads from Docker's log buffers and doesn't interfere with container execution.
+  </Accordion>
+
+  <Accordion title="How do I stop tailing logs?">
+    Press `Ctrl+C` in the terminal. This cleanly closes all log streams and exits gracefully.
+  </Accordion>
+
+  <Accordion title="Can I use this in CI/CD pipelines?">
+    Yes! Use `--output` to save logs as artifacts. Use `--no-color` for cleaner log files when piping to other tools.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Still Have Questions?
+
+Check out the [CLI reference](/cli-reference) for complete documentation, or visit the [GitHub repository](https://github.com/scotello/docker-agent-tail) to file an issue.

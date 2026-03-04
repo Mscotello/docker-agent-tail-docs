@@ -1,0 +1,131 @@
+---
+title: "Using with AI Agents"
+description: "Learn how to integrate docker-agent-tail with AI coding agents like Claude Code and Cursor."
+---
+
+## Why AI Agents Need Logs
+
+When debugging or developing multi-container applications, AI agents need access to real-time logs from all running services. docker-agent-tail provides structured, machine-readable log output that AI agents can easily parse and analyze.
+
+## Claude Code Integration
+
+Use docker-agent-tail to provide real-time logs to Claude Code:
+
+<Steps>
+  <Step title="Start collecting logs">
+    In your terminal, start docker-agent-tail to write logs:
+
+    ```bash
+    docker-agent-tail --all --output logs/ --follow
+    ```
+  </Step>
+  <Step title="Share logs with Claude Code">
+    Share the logs directory with Claude Code by asking it to read the files.
+  </Step>
+  <Step title="Debug with context">
+    Claude Code can now see what's happening in your containers and help debug issues.
+  </Step>
+</Steps>
+
+This approach gives Claude Code real-time visibility into your running application's behavior.
+
+## Cursor Integration
+
+Similar to Claude Code, you can use docker-agent-tail with Cursor:
+
+```bash
+# In your workspace, start collecting logs
+docker-agent-tail --all --output .logs/ --follow
+
+# Cursor will pick up the new .logs directory in your workspace
+# It can then analyze container behavior in real-time
+```
+
+Cursor can monitor the log files and provide insights about your containers.
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Filter Noisy Logs" icon="filter">
+    Use `--exclude` and `--mute` to reduce noise in logs shared with AI agents. This helps them focus on meaningful errors and warnings.
+
+    ```bash
+    docker-agent-tail --all --output logs/ --exclude 'health' --mute 'DEBUG'
+    ```
+  </Card>
+  <Card title="Use JSON Output for Parsing" icon="code">
+    When building automation around logs, use `--json` for machine-readable output that's easier to parse.
+
+    ```bash
+    docker-agent-tail --all --json > logs.jsonl
+    ```
+  </Card>
+  <Card title="Recent Logs Only" icon="clock">
+    Use `--since` to only capture recent logs, reducing file size and improving agent performance.
+
+    ```bash
+    docker-agent-tail --all --since "2026-03-04T10:00:00Z" --output logs/
+    ```
+  </Card>
+  <Card title="Specific Services" icon="bullseye">
+    Tail only the containers relevant to debugging to avoid overwhelming the agent with irrelevant logs.
+
+    ```bash
+    docker-agent-tail --names api,web --follow
+    ```
+  </Card>
+</CardGroup>
+
+## Log Format for Agents
+
+docker-agent-tail outputs structured logs designed for easy parsing by AI agents:
+
+<CodeGroup>
+
+```text Combined Log (human-readable)
+[2026-03-04T10:30:01.789Z] [api    ] [stdout] GET /api/users 200 12ms
+[2026-03-04T10:30:02.145Z] [web    ] [stderr] Warning: slow query detected
+[2026-03-04T10:30:02.567Z] [worker ] [stdout] Processing job #42
+```
+
+```json JSON Lines (programmatic analysis)
+{"timestamp":"2026-03-04T10:30:01.789Z","container":"api","stream":"stdout","message":"GET /api/users 200 12ms"}
+{"timestamp":"2026-03-04T10:30:02.145Z","container":"web","stream":"stderr","message":"Warning: slow query detected"}
+{"timestamp":"2026-03-04T10:30:02.567Z","container":"worker","stream":"stdout","message":"Processing job #42"}
+```
+
+</CodeGroup>
+
+Each log entry includes timestamp, container name, stream type (stdout/stderr), and the actual message. This structure makes it easy for AI agents to:
+
+- Correlate events across containers by timestamp
+- Filter by container and stream type
+- Parse structured data from log messages
+- Identify error patterns and anomalies
+
+## Example: Debugging a Failing Deploy
+
+Here's a typical workflow for using docker-agent-tail with an AI agent:
+
+<Steps>
+  <Step title="You notice errors">
+    Your web service is crashing on startup. You ask the AI agent for help:
+
+    *"My web service is crashing on startup. Can you help me debug?"*
+  </Step>
+  <Step title="Start collecting logs">
+    ```bash
+    docker-agent-tail --all --output debug_logs/ --follow --no-color
+    ```
+  </Step>
+  <Step title="Share with the AI agent">
+    *"I've saved all the logs in the debug_logs/ directory. Can you analyze them and tell me what's going wrong?"*
+  </Step>
+  <Step title="AI agent analyzes">
+    The agent reads `combined.log` and per-container logs, correlates errors by timestamp, identifies the root cause, and suggests fixes.
+  </Step>
+</Steps>
+
+---
+
+For more details on CLI options, see the [CLI reference](/cli-reference).

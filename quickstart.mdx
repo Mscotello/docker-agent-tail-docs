@@ -1,0 +1,91 @@
+---
+title: "Getting Started"
+description: "A quick 5-minute tutorial to get docker-agent-tail working with your containers."
+---
+
+## Step 1: Start Some Containers
+
+First, make sure you have Docker running with at least one container. If you don't have any running, start a quick test container:
+
+```bash
+# Start a simple web server
+docker run -d --name web-server nginx
+
+# Start a background worker
+docker run -d --name worker-app busybox sh -c "while true; do echo 'working...'; sleep 5; done"
+```
+
+## Step 2: Tail All Logs
+
+Run docker-agent-tail with the `--all` flag to discover and tail all running containers:
+
+```bash
+docker-agent-tail --all --follow
+```
+
+You'll see logs from both containers streaming in real-time with timestamps and container names.
+
+## Step 3: Filter Specific Containers
+
+Target specific containers using the `--names` flag:
+
+```bash
+docker-agent-tail --names web-server,worker-app --follow
+```
+
+## Step 4: Filter Log Content
+
+Use regex patterns to filter and mute specific log lines:
+
+```bash
+# Exclude lines matching a pattern
+docker-agent-tail --all --exclude 'health.*check' --follow
+
+# Mute specific patterns (separate output file)
+docker-agent-tail --all --mute 'DEBUG|TRACE' --follow
+```
+
+## Step 5: Save to Files
+
+Write logs to files for later analysis or sharing with AI agents:
+
+```bash
+# Create a logs directory
+mkdir -p logs
+
+# Write combined logs
+docker-agent-tail --all --output logs/combined.log --follow
+```
+
+This creates individual per-container logs and a combined log file.
+
+## Understanding Log Output
+
+Log lines follow a structured format optimized for parsing:
+
+<CodeGroup>
+
+```text Per-Container
+[2026-03-04T10:30:01.789Z] [stdout] GET /api/users 200 12ms
+```
+
+```text Combined
+[2026-03-04T10:30:01.789Z] [web  ] [stdout] GET /api/users 200 12ms
+```
+
+</CodeGroup>
+
+- **Timestamp**: ISO 8601 format with millisecond precision
+- **Container name**: Fixed-width column in combined logs
+- **Stream type**: stdout or stderr
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="CLI Reference" icon="terminal" href="/cli-reference">
+    Explore all available flags and options
+  </Card>
+  <Card title="Using with AI Agents" icon="robot" href="/agents">
+    Learn how to use docker-agent-tail with Claude Code and Cursor
+  </Card>
+</CardGroup>

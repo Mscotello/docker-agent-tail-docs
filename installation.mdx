@@ -1,0 +1,90 @@
+---
+title: "Installation"
+description: "Choose your preferred installation method for docker-agent-tail."
+---
+
+## Install
+
+<Tabs>
+  <Tab title="Homebrew">
+    ```bash
+    brew install docker-agent-tail
+    ```
+  </Tab>
+  <Tab title="Go Install">
+    ```bash
+    go install github.com/scotello/docker-agent-tail@latest
+    ```
+  </Tab>
+  <Tab title="Curl">
+    ```bash
+    curl -sSL https://github.com/scotello/docker-agent-tail/releases/latest/download/install.sh | bash
+    ```
+  </Tab>
+  <Tab title="Docker">
+    ```bash
+    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock scotello/docker-agent-tail
+    ```
+  </Tab>
+</Tabs>
+
+## Verify Installation
+
+After installation, verify that docker-agent-tail is working correctly:
+
+```bash
+$ docker-agent-tail --version
+docker-agent-tail version 0.1.0
+```
+
+## System Requirements
+
+<CardGroup cols={3}>
+  <Card title="Docker" icon="docker">
+    Docker must be installed and the daemon running. Supports Docker 18.0+.
+  </Card>
+  <Card title="Socket Access" icon="plug">
+    Your user must have access to the Docker socket (usually requires membership in the `docker` group).
+  </Card>
+  <Card title="Log Driver" icon="file">
+    Containers must use `json-file` or `journald` log drivers for streaming support.
+  </Card>
+</CardGroup>
+
+## First Run
+
+Try tailing all running containers:
+
+```bash
+$ docker-agent-tail --all --follow
+[2026-03-04T10:30:01.789Z] [web  ] [stdout] Server listening on :3000
+```
+
+Press `Ctrl+C` to exit.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Permission Denied">
+    If you get a permission error, add your user to the docker group:
+
+    ```bash
+    sudo usermod -aG docker $USER
+    ```
+
+    Then log out and back in for the change to take effect.
+  </Accordion>
+  <Accordion title="Docker Socket Not Found">
+    Check your Docker installation or set the `DOCKER_HOST` environment variable:
+
+    ```bash
+    export DOCKER_HOST=unix:///var/run/docker.sock
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<Card title="Getting Started Guide" icon="arrow-right" href="/quickstart">
+  Follow the 5-minute tutorial to learn the basics
+</Card>

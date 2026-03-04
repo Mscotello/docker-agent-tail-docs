@@ -1,0 +1,9 @@
+{
+  "name": "docker-agent-tail-docs",
+  "private": true,
+  "scripts": {
+    "dev": "mint dev",
+    "build": "mint build",
+    "preview": "mint preview"
+  }
+}

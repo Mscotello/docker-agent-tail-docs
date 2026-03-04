@@ -1,0 +1,102 @@
+---
+title: "CLI Reference"
+description: "Complete reference for all docker-agent-tail flags and options."
+---
+
+## Global Flags
+
+| Flag | Description |
+|------|-------------|
+| `--all, -a` | Discover and tail all running containers |
+| `--names, -n` | Comma-separated list of container names to tail (e.g., `api,web,db`) |
+| `--compose, -c` | Tail all services in a Docker Compose project (requires docker-compose.yml) |
+| `--follow, -f` | Follow logs in real-time as new entries arrive |
+| `--output, -o` | Output directory for log files (creates both combined and per-container logs) |
+| `--since` | Only show logs since timestamp (RFC3339 format, e.g., `2026-03-04T10:30:00Z`) |
+| `--json` | Output logs in JSON format instead of text |
+| `--no-color` | Disable colored output (useful for piping to files) |
+
+## Filter Flags
+
+| Flag | Description |
+|------|-------------|
+| `--exclude, -e` | Exclude logs matching this regex pattern. Example: `--exclude 'health.*check'` |
+| `--mute, -m` | Mute logs matching this regex (separate output file). Example: `--mute 'DEBUG\|TRACE'` |
+
+## Positional Arguments
+
+### `GLOB_PATTERN`
+
+Optional glob pattern to filter containers by name. Example: `web-*` matches all containers starting with "web-".
+
+```bash
+docker-agent-tail 'api-*' --follow
+```
+
+## Examples
+
+<CodeGroup>
+
+```bash Tail all containers
+docker-agent-tail --all --follow
+```
+
+```bash Docker Compose services
+docker-agent-tail --compose --follow
+```
+
+```bash Filter by name pattern
+docker-agent-tail 'api-*' --follow
+```
+
+```bash Save logs with filtering
+docker-agent-tail --all --output logs/ --exclude 'health' --mute 'DEBUG'
+```
+
+```bash JSON output for parsing
+docker-agent-tail --all --json | jq '.container'
+```
+
+```bash Logs since a specific time
+docker-agent-tail --all --since "2026-03-04T10:00:00Z"
+```
+
+```bash Without ANSI colors
+docker-agent-tail --all --no-color > logs.txt
+```
+
+</CodeGroup>
+
+## Output Files
+
+When using `--output`, the following files are created:
+
+| File | Description |
+|------|-------------|
+| `combined.log` | All logs from all containers in one file with container names |
+| `<container-name>.log` | Individual log file for each container |
+| `<container-name>.muted.log` | Only logs matching mute patterns for each container |
+
+## Log Format
+
+<CodeGroup>
+
+```text Per-Container
+[2026-03-04T10:30:01.789Z] [stdout] GET /api/users 200 12ms
+```
+
+```text Combined
+[2026-03-04T10:30:01.789Z] [api  ] [stdout] GET /api/users 200 12ms
+```
+
+```json JSON
+{"timestamp":"2026-03-04T10:30:01.789Z","container":"api","stream":"stdout","message":"GET /api/users 200 12ms"}
+```
+
+</CodeGroup>
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `DOCKER_HOST` | Docker socket or daemon address. Default: `~/.docker/run/docker.sock` or `/var/run/docker.sock` |

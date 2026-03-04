@@ -7,7 +7,7 @@ description: "Complete reference for all docker-agent-tail commands, flags, and 
 
 | Command | Description |
 |---------|-------------|
-| `init` | Set up AI agent config files (`.claude`, `.cursor`, `.windsurf`) in the output directory |
+| `init` | Set up AI agent config files (CLAUDE.md, .mcp.json, and agent-specific skill/rule files) |
 | `agent-help` | Print a usage guide for AI coding agents to read |
 | `clean` | Remove old log sessions. Use `--retain N` to keep the last N sessions (default: 5) |
 | `lnav` | Open the latest session in [lnav](/lnav). Use `--session <name>` for a specific session |
@@ -31,15 +31,17 @@ docker-agent-tail lnav-install
 | `--compose, -c` | Tail all services in a Docker Compose project (requires docker-compose.yml) |
 | `--follow, -f` | Follow logs in real-time as new entries arrive (default: true) |
 | `--output, -o` | Output directory for log files (default: `./logs`) |
-| `--since, -s` | Only show logs since a duration ago (e.g., `5m`, `1h`) or RFC3339 timestamp |
+| `--since, -s` | Only show logs since a duration ago (e.g., `5m`, `1h`) |
 | `--no-color` | Disable colored output (useful for piping to files) |
+| `--version, -v` | Show version and exit |
+| `--help, -h` | Show help message |
 
 ## Filter Flags
 
 | Flag | Description |
 |------|-------------|
-| `--exclude, -e` | Exclude log lines matching this regex pattern. Example: `--exclude 'health.*check'` |
-| `--mute, -m` | Hide matching containers from terminal output (still written to log files). Example: `--mute 'worker'` |
+| `--exclude, -e` | Exclude log lines matching a regex pattern. Example: `--exclude 'health.*check'` |
+| `--mute, -m` | Hide log lines matching a regex pattern from terminal output (still written to log files). Example: `--mute 'worker'` |
 
 ## Positional Arguments
 

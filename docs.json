@@ -10,7 +10,7 @@
   "logo": {
     "light": "/logo-light.svg",
     "dark": "/logo.svg",
-    "href": "https://github.com/scotello/docker-agent-tail"
+    "href": "https://github.com/Mscotello/docker-agent-tail"
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -38,13 +38,13 @@
     "links": [
       {
         "label": "GitHub",
-        "href": "https://github.com/scotello/docker-agent-tail"
+        "href": "https://github.com/Mscotello/docker-agent-tail"
       }
     ]
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/scotello/docker-agent-tail"
+      "github": "https://github.com/Mscotello/docker-agent-tail"
     }
   }
 }

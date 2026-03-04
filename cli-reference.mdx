@@ -7,9 +7,9 @@ description: "Complete reference for all docker-agent-tail commands, flags, and 
 
 | Command | Description |
 |---------|-------------|
-| `init` | Set up AI agent config files (CLAUDE.md, .mcp.json, and agent-specific skill/rule files) |
+| `init` | Set up AI agent config files (skills, CLAUDE.md, and agent-specific rule files) |
 | `agent-help` | Print a usage guide for AI coding agents to read |
-| `clean` | Remove old log sessions. Use `--retain N` to keep the last N sessions (default: 5) |
+| `clean` | Remove old log sessions. Use `--retain N` to keep the last N sessions (default: 5). Use `--dry-run` to preview |
 | `lnav` | Open the latest session in [lnav](/lnav). Use `--session <name>` for a specific session |
 | `lnav-install` | Install the lnav format definition for viewing JSONL logs with [lnav](/lnav) |
 
@@ -17,6 +17,7 @@ description: "Complete reference for all docker-agent-tail commands, flags, and 
 # Examples
 docker-agent-tail init
 docker-agent-tail clean --retain 3
+docker-agent-tail clean --dry-run
 docker-agent-tail lnav
 docker-agent-tail lnav --session 2026-03-04-143700
 docker-agent-tail lnav-install
@@ -29,7 +30,8 @@ docker-agent-tail lnav-install
 | `--all, -a` | Discover and tail all running containers |
 | `--names, -n` | Comma-separated list of container names to tail (e.g., `api,web,db`) |
 | `--compose, -c` | Tail all services in a Docker Compose project (requires docker-compose.yml) |
-| `--follow, -f` | Follow logs in real-time as new entries arrive (default: true) |
+| `--follow, -f` | Reattach on container restart (default: false) |
+| `--json` | Output logs as JSON Lines to stdout instead of human-readable format |
 | `--output, -o` | Output directory for log files (default: `./logs`) |
 | `--since, -s` | Only show logs since a duration ago (e.g., `5m`, `1h`) |
 | `--no-color` | Disable colored output (useful for piping to files) |
@@ -58,15 +60,19 @@ docker-agent-tail 'api-*' --follow
 <CodeGroup>
 
 ```bash Tail all containers
-docker-agent-tail --all --follow
+docker-agent-tail --all
 ```
 
 ```bash Docker Compose services
-docker-agent-tail --compose --follow
+docker-agent-tail --compose
 ```
 
 ```bash Filter by name pattern
-docker-agent-tail 'api-*' --follow
+docker-agent-tail 'api-*'
+```
+
+```bash JSON Lines output to stdout
+docker-agent-tail --all --json
 ```
 
 ```bash Save logs with filtering
@@ -118,6 +124,16 @@ Log files use JSON Lines (`.jsonl`). Each line is a valid JSON object.
 - **`message`**: Log message (plain text output only)
 
 Structured JSON from containers is automatically merged with metadata fields. Log levels are [normalized](/lnav#level-normalization) to canonical values (`debug`, `info`, `warning`, `error`, `fatal`, `trace`).
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | Success |
+| `1` | General error |
+| `2` | No containers found matching criteria |
+| `3` | Docker daemon error (connection failed, timeout) |
+| `64` | Usage error (invalid flags or arguments) |
 
 ## Environment Variables
 

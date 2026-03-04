@@ -101,7 +101,34 @@ description: "Common questions about docker-agent-tail."
   </Accordion>
 
   <Accordion title="Can I use this in CI/CD pipelines?">
-    Yes! Use `--output` to save logs as artifacts. Use `--no-color` for cleaner log files when piping to other tools.
+    Yes! Use `--output` to save logs as artifacts. Use `--no-color` or `--json` for cleaner log files when piping to other tools.
+  </Accordion>
+
+  <Accordion title="Why are no logs appearing for my container?">
+    Check the container's log driver: `docker inspect --format='{{.HostConfig.LogConfig.Type}}' <container>`. docker-agent-tail only works with `json-file` and `journald` drivers. Other drivers (e.g., `syslog`, `awslogs`, `fluentd`) don't support Docker's `ContainerLogs` API.
+  </Accordion>
+
+  <Accordion title="What are the exit codes?">
+    | Code | Meaning |
+    |------|---------|
+    | `0` | Success |
+    | `1` | General error |
+    | `2` | No containers found matching criteria |
+    | `3` | Docker daemon error (connection failed, timeout) |
+    | `64` | Usage error (invalid flags or arguments) |
+  </Accordion>
+
+  <Accordion title="Can I get JSON output on stdout?">
+    Yes! Use the `--json` flag to output structured JSON Lines to stdout instead of human-readable format. This is useful for piping to `jq` or other tools.
+  </Accordion>
+
+  <Accordion title="How do I preview what clean will delete?">
+    Use `--dry-run` to list sessions that would be deleted without actually removing them:
+
+    ```bash
+    docker-agent-tail clean --dry-run
+    docker-agent-tail clean --retain 2 --dry-run
+    ```
   </Accordion>
 </AccordionGroup>
 
